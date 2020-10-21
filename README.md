@@ -1,8 +1,7 @@
 # sessions
 
-[![codecov](https://codecov.io/gh/gin-contrib/sessions/branch/master/graph/badge.svg)](https://codecov.io/gh/gin-contrib/sessions)
-[![Go Report Card](https://goreportcard.com/badge/github.com/Calidity/gin-sessions)](https://goreportcard.com/report/github.com/Calidity/gin-sessions)
 [![GoDoc](https://godoc.org/github.com/gin-contrib/sessions?status.svg)](https://godoc.org/github.com/gin-contrib/sessions)
+[![Go Report Card](https://goreportcard.com/badge/github.com/Calidity/gin-sessions)](https://goreportcard.com/report/github.com/Calidity/gin-sessions)
 
 Gin middleware for session management with multi-backend support:
 
