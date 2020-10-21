@@ -1,14 +1,15 @@
 package main
 
 import (
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-contrib/sessions/redis"
+	"github.com/Calidity/gin-sessions"
+	sredis "github.com/Calidity/gin-sessions/redis"
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis/v8"
 )
 
 func main() {
 	r := gin.Default()
-	store, _ := redis.NewStore(10, "tcp", "localhost:6379", "", []byte("secret"))
+	store, _ := sredis.NewRedisStore(redis.NewClient(&redis.Options{Addr: "localhost:6379"}), []byte("secret"))
 	r.Use(sessions.Sessions("mysession", store))
 
 	r.GET("/incr", func(c *gin.Context) {
@@ -22,7 +23,7 @@ func main() {
 			count++
 		}
 		session.Set("count", count)
-		session.Save()
+		_ = session.Save()
 		c.JSON(200, gin.H{"count": count})
 	})
 	r.Run(":8000")

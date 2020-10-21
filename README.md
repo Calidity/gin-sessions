@@ -1,18 +1,17 @@
 # sessions
 
-[![Build Status](https://travis-ci.org/gin-contrib/sessions.svg)](https://travis-ci.org/gin-contrib/sessions)
 [![codecov](https://codecov.io/gh/gin-contrib/sessions/branch/master/graph/badge.svg)](https://codecov.io/gh/gin-contrib/sessions)
-[![Go Report Card](https://goreportcard.com/badge/github.com/gin-contrib/sessions)](https://goreportcard.com/report/github.com/gin-contrib/sessions)
+[![Go Report Card](https://goreportcard.com/badge/github.com/Calidity/gin-sessions)](https://goreportcard.com/report/github.com/Calidity/gin-sessions)
 [![GoDoc](https://godoc.org/github.com/gin-contrib/sessions?status.svg)](https://godoc.org/github.com/gin-contrib/sessions)
-[![Join the chat at https://gitter.im/gin-gonic/gin](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/gin-gonic/gin)
 
 Gin middleware for session management with multi-backend support:
 
 - [cookie-based](#cookie-based)
-- [Redis](#redis)
-- [memcached](#memcached)
-- [MongoDB](#mongodb)
-- [memstore](#memstore)
+- [Redis](#redis) using [go-redis/redis/v8](https://github.com/go-redis/redis)
+
+This Redis client allows for using an existing client with support for Redis Sentinel and cluster.
+
+Forked from https://github.com/gin-contrib/sessions
 
 ## Usage
 
@@ -21,13 +20,13 @@ Gin middleware for session management with multi-backend support:
 Download and install it:
 
 ```bash
-$ go get github.com/gin-contrib/sessions
+$ go get github.com/Calidity/gin-sessions
 ```
 
 Import it in your code:
 
 ```go
-import "github.com/gin-contrib/sessions"
+import "github.com/Calidity/gin-sessions"
 ```
 
 ## Basic Examples
@@ -38,8 +37,8 @@ import "github.com/gin-contrib/sessions"
 package main
 
 import (
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-contrib/sessions/cookie"
+	"github.com/Calidity/gin-sessions"
+	"github.com/Calidity/gin-sessions/cookie"
 	"github.com/gin-gonic/gin"
 )
 
@@ -68,8 +67,8 @@ func main() {
 package main
 
 import (
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-contrib/sessions/cookie"
+	"github.com/Calidity/gin-sessions"
+	"github.com/Calidity/gin-sessions/cookie"
 	"github.com/gin-gonic/gin"
 )
 
@@ -111,8 +110,8 @@ func main() {
 package main
 
 import (
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-contrib/sessions/cookie"
+	"github.com/Calidity/gin-sessions"
+	"github.com/Calidity/gin-sessions/cookie"
 	"github.com/gin-gonic/gin"
 )
 
@@ -146,166 +145,15 @@ func main() {
 package main
 
 import (
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-contrib/sessions/redis"
+	"github.com/Calidity/gin-sessions"
+	sredis "github.com/Calidity/gin-sessions/redis"
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis/v8"
 )
 
 func main() {
 	r := gin.Default()
-	store, _ := redis.NewStore(10, "tcp", "localhost:6379", "", []byte("secret"))
-	r.Use(sessions.Sessions("mysession", store))
-
-	r.GET("/incr", func(c *gin.Context) {
-		session := sessions.Default(c)
-		var count int
-		v := session.Get("count")
-		if v == nil {
-			count = 0
-		} else {
-			count = v.(int)
-			count++
-		}
-		session.Set("count", count)
-		session.Save()
-		c.JSON(200, gin.H{"count": count})
-	})
-	r.Run(":8000")
-}
-```
-
-### Memcached
-
-#### ASCII Protocol
-
-[embedmd]:# (_example/memcached/ascii/ascii.go go)
-```go
-package main
-
-import (
-	"github.com/bradfitz/gomemcache/memcache"
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-contrib/sessions/memcached"
-	"github.com/gin-gonic/gin"
-)
-
-func main() {
-	r := gin.Default()
-	store := memcached.NewStore(memcache.New("localhost:11211"), "", []byte("secret"))
-	r.Use(sessions.Sessions("mysession", store))
-
-	r.GET("/incr", func(c *gin.Context) {
-		session := sessions.Default(c)
-		var count int
-		v := session.Get("count")
-		if v == nil {
-			count = 0
-		} else {
-			count = v.(int)
-			count++
-		}
-		session.Set("count", count)
-		session.Save()
-		c.JSON(200, gin.H{"count": count})
-	})
-	r.Run(":8000")
-}
-```
-
-#### Binary protocol (with optional SASL authentication)
-
-[embedmd]:# (_example/memcached/binary/binary.go go)
-```go
-package main
-
-import (
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-contrib/sessions/memcached"
-	"github.com/gin-gonic/gin"
-	"github.com/memcachier/mc"
-)
-
-func main() {
-	r := gin.Default()
-	client := mc.NewMC("localhost:11211", "username", "password")
-	store := memcached.NewMemcacheStore(client, "", []byte("secret"))
-	r.Use(sessions.Sessions("mysession", store))
-
-	r.GET("/incr", func(c *gin.Context) {
-		session := sessions.Default(c)
-		var count int
-		v := session.Get("count")
-		if v == nil {
-			count = 0
-		} else {
-			count = v.(int)
-			count++
-		}
-		session.Set("count", count)
-		session.Save()
-		c.JSON(200, gin.H{"count": count})
-	})
-	r.Run(":8000")
-}
-```
-
-### MongoDB
-
-[embedmd]:# (_example/mongo/main.go go)
-```go
-package main
-
-import (
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-contrib/sessions/mongo"
-	"github.com/gin-gonic/gin"
-	"github.com/globalsign/mgo"
-)
-
-func main() {
-	r := gin.Default()
-	session, err := mgo.Dial("localhost:27017/test")
-	if err != nil {
-		// handle err
-	}
-
-	c := session.DB("").C("sessions")
-	store := mongo.NewStore(c, 3600, true, []byte("secret"))
-	r.Use(sessions.Sessions("mysession", store))
-
-	r.GET("/incr", func(c *gin.Context) {
-		session := sessions.Default(c)
-		var count int
-		v := session.Get("count")
-		if v == nil {
-			count = 0
-		} else {
-			count = v.(int)
-			count++
-		}
-		session.Set("count", count)
-		session.Save()
-		c.JSON(200, gin.H{"count": count})
-	})
-	r.Run(":8000")
-}
-```
-
-### memstore
-
-[embedmd]:# (_example/memstore/main.go go)
-```go
-package main
-
-import (
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-contrib/sessions/memstore"
-	"github.com/gin-gonic/gin"
-)
-
-func main() {
-	r := gin.Default()
-	store := memstore.NewStore([]byte("secret"))
+	store, _ := sredis.NewRedisStore(redis.NewClient(&redis.Options{Addr: "localhost:6379"}), []byte("secret"))
 	r.Use(sessions.Sessions("mysession", store))
 
 	r.GET("/incr", func(c *gin.Context) {
