@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	DefaultKey  = "github.com/gin-contrib/sessions"
+	DefaultKey  = "github.com/Calidity/gin-sessions"
 	errorFormat = "[sessions] ERROR! %s\n"
 )
 

@@ -1,5 +1,3 @@
-// +build go1.11
-
 package tester
 
 import (
@@ -8,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/gin-contrib/sessions"
+	"github.com/Calidity/gin-sessions"
 	"github.com/gin-gonic/gin"
 )
 
@@ -20,7 +18,7 @@ func testOptionSameSitego(t *testing.T, r *gin.Engine) {
 		session.Options(sessions.Options{
 			SameSite: http.SameSiteStrictMode,
 		})
-		session.Save()
+		_ = session.Save()
 		c.String(200, ok)
 	})
 

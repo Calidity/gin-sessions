@@ -1,16 +1,17 @@
 package redis
 
 import (
+	"github.com/go-redis/redis/v8"
 	"testing"
 
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-contrib/sessions/tester"
+	sessions "github.com/Calidity/gin-sessions"
+	"github.com/Calidity/gin-sessions/tester"
 )
 
 const redisTestServer = "localhost:6379"
 
 var newRedisStore = func(_ *testing.T) sessions.Store {
-	store, err := NewStore(10, "tcp", redisTestServer, "", []byte("secret"))
+	store, err := NewRedisStore(redis.NewClient(&redis.Options{Addr: redisTestServer}), []byte("secret"))
 	if err != nil {
 		panic(err)
 	}
@@ -40,8 +41,8 @@ func TestRedis_SessionOptions(t *testing.T) {
 func TestGetRedisStore(t *testing.T) {
 	t.Run("unmatched type", func(t *testing.T) {
 		type store struct{ Store }
-		err, rediStore := GetRedisStore(store{})
-		if err == nil || rediStore != nil {
+		err, redisStore := GetRedisStore(store{})
+		if err == nil || redisStore != nil {
 			t.Fail()
 		}
 	})
